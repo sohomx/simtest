@@ -47,6 +47,26 @@ This will:
 
 ---
 
+### 📽 Terminal Demo
+
+Here’s a 30-second walkthrough of SimTest in action:
+
+```markdown
+![SimTest Demo](assets/demo.svg)
+```
+
+This runs the core workflow:
+
+```bash
+simtest init --path examples/basic_agent/main.py
+simtest seed --suite tool-schema-sanity
+simtest fuzz --quick --report simtest-report.md
+```
+
+It parses the agent DAG, loads curated test seeds, runs sandboxed fuzz checks, and writes a markdown report — all under 30 seconds.
+
+---
+
 ## CLI Commands
 
 ### `simtest init`
