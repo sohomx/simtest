@@ -15,6 +15,7 @@ from simtest.fuzz.tracker import CostTracker, BudgetExceeded
 from rich.console import Console
 from rich.table import Table
 from simtest.verdict.judge import LLMJudge
+from simtest.coverage.calc import CoverageCalculator
 
 app = typer.Typer()
 
@@ -157,6 +158,14 @@ def fuzz(
     console = Console()
     print(f"\n✅ Fuzz complete: {total_runs} seeds run")
     print(f"💰 Total cost: ${tracker.compute_cost():.4f}")
+
+    # 📊 Coverage calc
+    all_traces = [step for seed in seeds for step in run(seed.input)]
+    coverage = CoverageCalculator(graph, all_traces).compute()
+    print(f"📊 Coverage: {coverage['node_visit_pct']}% nodes / {coverage['tool_schema_visit_pct']}% schemas")
+
+    if quick and coverage["node_visit_pct"] < 80:
+        print("⚠️  Warning: node coverage < 80% in quick-mode")
 
     total = sum(verdict_counts.values())
     passed = verdict_counts["PASS"]
