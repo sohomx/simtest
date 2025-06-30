@@ -1,5 +1,7 @@
 # SimTest
 
+![SimTest CI](https://github.com/sohomx/simtest/actions/workflows/simtest.yml/badge.svg)
+
 **Fuzz testing and coverage reporting for LLM agents.**
 
 SimTest is a zero-config test harness for validating multi-step LLM agents built with CrewAI, LangGraph, or custom DAGs.
@@ -19,7 +21,7 @@ pip install simtest
 Or clone the repository directly:
 
 ```bash
-git clone https://github.com/YOUR_GITHUB/simtest.git
+git clone https://github.com/sohomx/simtest.git
 cd simtest
 pip install .
 ```
