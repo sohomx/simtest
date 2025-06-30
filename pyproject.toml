@@ -2,11 +2,12 @@
 name = "simtest"
 version = "0.1.0"
 description = "CLI-first fuzz & coverage gate for LLM agent graphs"
-authors = ["Your Name <you@example.com>"]
+authors = ["Sohom <your@email.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "simtest" }]
-exclude = ["seeds"]
+packages = [
+    { include = "simtest" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -32,5 +33,9 @@ strict = true
 line-length = 100
 target-version = "py310"
 select = ["E", "F", "I", "UP", "B", "C4"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 
