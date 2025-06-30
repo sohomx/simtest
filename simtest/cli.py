@@ -14,6 +14,7 @@ from simtest.fuzz.sandbox import SandboxExecutor
 from simtest.fuzz.tracker import CostTracker, BudgetExceeded
 from rich.console import Console
 from rich.table import Table
+from simtest.verdict.judge import LLMJudge
 
 app = typer.Typer()
 
@@ -109,7 +110,8 @@ def fuzz(
     graph_path: str = typer.Option(".simgraph.json", help="Path to compiled simgraph"),
     suite: str = typer.Option("tool-schema-sanity", help="Seed YAML suite"),
     quick: bool = typer.Option(True, help="Limit to 100 seeds"),
-    max_cost: float = typer.Option(3.0, help="Budget cap in USD")
+    max_cost: float = typer.Option(3.0, help="Budget cap in USD"),
+    semantic_check: bool = typer.Option(False, help="Use LLM to explain failed outputs"),
 ):
     """
     Run fuzzing session: load graph + seeds → run sandboxed tool calls.
@@ -124,6 +126,7 @@ def fuzz(
         seeds = seeds[:100]
 
     tracker = CostTracker(max_dollars=max_cost)
+    judge = LLMJudge() if semantic_check else None
     total_runs = 0
     verdict_counts = {"PASS": 0, "FAIL_SCHEMA": 0, "FAIL_EXCEPTION": 0}
     first_fails: list[dict] = []
@@ -137,6 +140,17 @@ def fuzz(
             for step in trace:
                 v = step["verdict"]
                 verdict_counts[v] += 1
+
+                if v != "PASS" and semantic_check and judge:
+                    task_text = seed.input.get("raw", "no input")
+                    judgement = judge.evaluate(
+                        node_id=step["node_id"],
+                        tool_name=step["tool_name"],
+                        task=task_text,
+                        output={"fake": True}  # placeholder
+                    )
+                    step["explanation"] = judgement.explanation
+
                 if v != "PASS" and len(first_fails) < 5:
                     first_fails.append(step)
 
@@ -154,6 +168,7 @@ def fuzz(
         table.add_column("Tool")
         table.add_column("Verdict")
         table.add_column("Latency")
+        table.add_column("Explanation", overflow="fold")
 
         for step in first_fails:
             table.add_row(
@@ -161,9 +176,11 @@ def fuzz(
                 step["tool_name"],
                 step["verdict"],
                 f"{step['latency_ms']} ms",
+                step.get("explanation", ""),
             )
 
         console.print(table)
+
 
 
 
