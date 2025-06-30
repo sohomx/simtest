@@ -1,11 +1,14 @@
 import typer
 import shutil
 from pathlib import Path
+
+import yaml
 from simtest.core.loader import load_graph
 from simtest.utils.table import print_graph_table
 from simtest.core.graph_builder import GraphBuilder
 from simtest.seeds.loader import load_seed_file
-from simtest.seeds.qa_seeds import qa_suite  # ✅ NEW
+from simtest.seeds.qa_seeds import qa_suite  
+from simtest.seedgen.generator import SeedGenerator
 
 app = typer.Typer()
 
@@ -72,6 +75,31 @@ def qa():
     if noise > 20:
         print("❌ Noise too high! Trim bad seeds before public use.")
         raise typer.Exit(1)
+    
+@app.command()
+def generate(
+    suite: str = typer.Option(..., help="Tool name or seed suite"),
+    n: int = typer.Option(100, help="How many seeds to generate"),
+    domain: str = typer.Option("", help="Optional domain (e.g., finance-qa)")
+):
+    """
+    Generate N LLM-based seed inputs for given tool or suite.
+    """
+    print(f"⚙️  Generating {n} seeds for: {suite}")
+    gen = SeedGenerator(suite=suite, n=n, domain=domain)
+    seeds, cost = gen.generate()
+
+    out_path = Path(f"seeds/{suite}-gen.yaml")
+    out_path.parent.mkdir(exist_ok=True)
+    with open(out_path, "w") as f:
+        yaml.dump([s.__dict__ for s in seeds], f)
+
+    print(f"\n✅ Wrote {len(seeds)} seeds to {out_path}")
+    print(f"💰 Total cost: ${cost.total_cost:.6f} using {cost.total_tokens} tokens")
+    print(f"   ├── Prompt: {cost.prompt_tokens}  → ${cost.prompt_tokens / 1000 * 0.0005:.6f}")
+    print(f"   └── Output: {cost.output_tokens}  → ${cost.output_tokens / 1000 * 0.0015:.6f}")
+
+
 
 
 if __name__ == "__main__":
