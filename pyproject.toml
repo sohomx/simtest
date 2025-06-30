@@ -12,6 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 typer = {extras = ["all"], version = "^0.9.0"}
+click = "<8.1.7"  # pinned to avoid typer incompat
 rich = "^13.7.1"
 pydantic = "^2.7"
 pyyaml = "^6.0"
@@ -33,6 +34,9 @@ strict = true
 line-length = 100
 target-version = "py310"
 select = ["E", "F", "I", "UP", "B", "C4"]
+
+[tool.poetry.scripts]
+simtest = "simtest.__main__:app"
 
 [build-system]
 requires = ["poetry-core"]
