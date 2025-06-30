@@ -9,6 +9,9 @@ from simtest.core.graph_builder import GraphBuilder
 from simtest.seeds.loader import load_seed_file
 from simtest.seeds.qa_seeds import qa_suite  
 from simtest.seedgen.generator import SeedGenerator
+import json
+from simtest.fuzz.sandbox import SandboxExecutor
+from simtest.fuzz.tracker import CostTracker, BudgetExceeded
 
 app = typer.Typer()
 
@@ -99,7 +102,36 @@ def generate(
     print(f"   ├── Prompt: {cost.prompt_tokens}  → ${cost.prompt_tokens / 1000 * 0.0005:.6f}")
     print(f"   └── Output: {cost.output_tokens}  → ${cost.output_tokens / 1000 * 0.0015:.6f}")
 
+@app.command()
+def fuzz(
+    graph_path: str = typer.Option(".simgraph.json", help="Path to compiled simgraph"),
+    suite: str = typer.Option("tool-schema-sanity", help="Seed YAML suite"),
+    quick: bool = typer.Option(True, help="Limit to 100 seeds"),
+    max_cost: float = typer.Option(3.0, help="Budget cap in USD")
+):
+    """
+    Run fuzzing session: load graph + seeds → run sandboxed tool calls.
+    """
+    print(f"🧪 Running fuzz on: {suite} (budget=${max_cost})")
 
+    with open(graph_path) as f:
+        graph = json.load(f)
+
+    seeds = load_seed_file(f"seeds/{suite}.yaml")
+    if quick:
+        seeds = seeds[:100]
+
+    tracker = CostTracker(max_dollars=max_cost)
+    total_runs = 0
+
+    with SandboxExecutor(graph) as run:
+        for seed in seeds:
+            trace = run(seed.input)
+            tracker.consume_trace(trace)
+            total_runs += 1
+
+    print(f"\n✅ Fuzz complete: {total_runs} seeds run")
+    print(f"💰 Total cost: ${tracker.compute_cost():.4f}")
 
 
 if __name__ == "__main__":
