@@ -51,9 +51,7 @@ This will:
 
 Here’s a 30-second walkthrough of SimTest in action:
 
-```markdown
 ![SimTest Demo](assets/demo.svg)
-```
 
 This runs the core workflow:
 
