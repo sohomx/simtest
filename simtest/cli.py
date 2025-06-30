@@ -12,6 +12,8 @@ from simtest.seedgen.generator import SeedGenerator
 import json
 from simtest.fuzz.sandbox import SandboxExecutor
 from simtest.fuzz.tracker import CostTracker, BudgetExceeded
+from rich.console import Console
+from rich.table import Table
 
 app = typer.Typer()
 
@@ -123,6 +125,8 @@ def fuzz(
 
     tracker = CostTracker(max_dollars=max_cost)
     total_runs = 0
+    verdict_counts = {"PASS": 0, "FAIL_SCHEMA": 0, "FAIL_EXCEPTION": 0}
+    first_fails: list[dict] = []
 
     with SandboxExecutor(graph) as run:
         for seed in seeds:
@@ -130,8 +134,37 @@ def fuzz(
             tracker.consume_trace(trace)
             total_runs += 1
 
+            for step in trace:
+                v = step["verdict"]
+                verdict_counts[v] += 1
+                if v != "PASS" and len(first_fails) < 5:
+                    first_fails.append(step)
+
+    console = Console()
     print(f"\n✅ Fuzz complete: {total_runs} seeds run")
     print(f"💰 Total cost: ${tracker.compute_cost():.4f}")
+
+    total = sum(verdict_counts.values())
+    passed = verdict_counts["PASS"]
+    console.print(f"[bold green]✅ PASS {passed} / {total}[/]")
+
+    if first_fails:
+        table = Table(title="First 5 Failures")
+        table.add_column("Node")
+        table.add_column("Tool")
+        table.add_column("Verdict")
+        table.add_column("Latency")
+
+        for step in first_fails:
+            table.add_row(
+                step["node_id"],
+                step["tool_name"],
+                step["verdict"],
+                f"{step['latency_ms']} ms",
+            )
+
+        console.print(table)
+
 
 
 if __name__ == "__main__":
