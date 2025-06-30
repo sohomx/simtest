@@ -1,9 +1,3 @@
-
----
-
-#### 📄 `examples/basic_agent/.github/workflows/simtest.yml`
-
-```yaml
 name: SimTest CI
 
 on:
@@ -20,5 +14,4 @@ jobs:
           python-version: "3.10"
       - run: pip install .
       - run: simtest init --path examples/basic_agent/main.py --write-graph
-      - run: simtest seed --suite tool-schema-sanity
       - run: simtest fuzz --quick --report simtest-report.md
