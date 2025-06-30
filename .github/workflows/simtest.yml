@@ -1,0 +1,20 @@
+name: SimTest CI
+
+on:
+  pull_request:
+    paths:
+      - "**.py"
+      - "seeds/**"
+      - ".simgraph.json"
+
+jobs:
+  fuzz-check:
+    name: SimTest quick-mode
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run SimTest CI Action
+        uses: ./.github/actions/simtest-ci
+
+      - name: Show report output
+        run: cat simtest-report.md

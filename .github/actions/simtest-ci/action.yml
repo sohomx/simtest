@@ -1,0 +1,29 @@
+name: simtest-ci
+description: Run SimTest in quick mode and check for cost/fail diffs
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install .
+
+    - name: Run simtest quick check
+      shell: bash
+      run: |
+        simtest fuzz --quick --report simtest-report.md > simtest-log.txt
+
+    - name: Upload report artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: simtest-report
+        path: simtest-report.md
