@@ -1,0 +1,20 @@
+- node_id: analyze
+  input:
+    text: "Do not summarize this meeting."
+  expect: null
+  vars: {}
+  description: "Negation case — tests if agent avoids acting"
+
+- node_id: end
+  input:
+    confirmation: false
+  expect: null
+  vars: {}
+  description: "Negated end condition — should prevent flow"
+
+- node_id: start
+  input:
+    user_message: "Don’t begin yet."
+  expect: null
+  vars: {}
+  description: "Negated start trigger"

@@ -1,0 +1,20 @@
+- node_id: start
+  input:
+    user_message: "Begin the workflow now."
+  expect: null
+  vars: {}
+  description: "Simple user start command"
+
+- node_id: analyze
+  input:
+    text: "The user wants to cancel the meeting."
+  expect: null
+  vars: {}
+  description: "Standard schema-valid text input"
+
+- node_id: end
+  input:
+    confirmation: true
+  expect: null
+  vars: {}
+  description: "Well-formed boolean input"

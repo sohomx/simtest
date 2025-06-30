@@ -1,0 +1,22 @@
+- node_id: analyze
+  input:
+    text: >
+      Please summarize this transcript:
+      [insert 500 words of repetitive content here... lorem ipsum...]
+  expect: null
+  vars: {}
+  description: "Large prompt body to trigger expensive tool call"
+
+- node_id: start
+  input:
+    user_message: "Begin. Here’s full context..." # followed by verbose data
+  expect: null
+  vars: {}
+  description: "High-token context test"
+
+- node_id: end
+  input:
+    confirmation: true
+  expect: null
+  vars: {}
+  description: "Control case for baseline cost comparison"
