@@ -1,3 +1,4 @@
+from typing import Optional
 import typer
 import shutil
 from pathlib import Path
@@ -113,11 +114,17 @@ def fuzz(
     quick: bool = typer.Option(True, help="Limit to 100 seeds"),
     max_cost: float = typer.Option(3.0, help="Budget cap in USD"),
     semantic_check: bool = typer.Option(False, help="Use LLM to explain failed outputs"),
+    report: Optional[str] = typer.Option(None, help="Write markdown report to this path")
 ):
     """
     Run fuzzing session: load graph + seeds → run sandboxed tool calls.
     """
+    import time
+    from simtest.coverage.calc import CoverageCalculator
+    from simtest.report.writer import ReportWriter
+
     print(f"🧪 Running fuzz on: {suite} (budget=${max_cost})")
+    start = time.time()
 
     with open(graph_path) as f:
         graph = json.load(f)
@@ -130,6 +137,7 @@ def fuzz(
     judge = LLMJudge() if semantic_check else None
     total_runs = 0
     verdict_counts = {"PASS": 0, "FAIL_SCHEMA": 0, "FAIL_EXCEPTION": 0}
+    all_traces: list[dict] = []
     first_fails: list[dict] = []
 
     with SandboxExecutor(graph) as run:
@@ -155,12 +163,12 @@ def fuzz(
                 if v != "PASS" and len(first_fails) < 5:
                     first_fails.append(step)
 
+                all_traces.append(step)
+
     console = Console()
     print(f"\n✅ Fuzz complete: {total_runs} seeds run")
     print(f"💰 Total cost: ${tracker.compute_cost():.4f}")
 
-    # 📊 Coverage calc
-    all_traces = [step for seed in seeds for step in run(seed.input)]
     coverage = CoverageCalculator(graph, all_traces).compute()
     print(f"📊 Coverage: {coverage['node_visit_pct']}% nodes / {coverage['tool_schema_visit_pct']}% schemas")
 
@@ -187,10 +195,18 @@ def fuzz(
                 f"{step['latency_ms']} ms",
                 step.get("explanation", ""),
             )
-
         console.print(table)
 
-
+    if report:
+        writer = ReportWriter(
+            traces=all_traces,
+            verdicts=verdict_counts,
+            coverage=coverage,
+            total_cost=tracker.compute_cost(),
+            runtime_s=round(time.time() - start, 2),
+        )
+        writer.write(report)
+        print(f"📝 Wrote markdown report to {report}")
 
 
 if __name__ == "__main__":
