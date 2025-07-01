@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 import typer
 import shutil
@@ -17,6 +18,10 @@ from rich.console import Console
 from rich.table import Table
 from simtest.verdict.judge import LLMJudge
 from simtest.coverage.calc import CoverageCalculator
+
+import platform
+import sys
+import importlib.metadata
 
 app = typer.Typer()
 
@@ -120,6 +125,8 @@ def fuzz(
     Run fuzzing session: load graph + seeds → run sandboxed tool calls.
     """
     import time
+    import os
+    import json
     from simtest.coverage.calc import CoverageCalculator
     from simtest.report.writer import ReportWriter
 
@@ -141,6 +148,8 @@ def fuzz(
     first_fails: list[dict] = []
 
     with SandboxExecutor(graph) as run:
+        debug = os.getenv("SIMTEST_DEBUG", "0") == "1"
+
         for seed in seeds:
             trace = run(seed.input)
             tracker.consume_trace(trace)
@@ -164,6 +173,10 @@ def fuzz(
                     first_fails.append(step)
 
                 all_traces.append(step)
+
+            if debug:
+                print(f"\n--- Trace for seed #{total_runs} ---")
+                print(json.dumps(trace, indent=2))
 
     console = Console()
     print(f"\n✅ Fuzz complete: {total_runs} seeds run")
@@ -216,6 +229,32 @@ def fuzz(
         if quick and total_cost > max_cost * 1.10:
             print("❌ Fuzz cost increased >10% — CI check will fail.")
             raise typer.Exit(1)
+
+
+@app.command()
+def diagnose():
+    """
+    Print environment and graph stats to help debug installs.
+    """
+    from pathlib import Path
+
+    print("🔍 SimTest Diagnostic Report\n")
+
+    print(f"Python version : {platform.python_version()}")
+    print(f"Platform       : {platform.system()} {platform.machine()}")
+    print(f"SimTest version: {importlib.metadata.version('simtest')}")
+
+    simgraph_path = Path(".simgraph.json")
+    if simgraph_path.exists():
+        import json
+        with open(simgraph_path) as f:
+            graph = json.load(f)
+        print(f"\nGraph loaded   : {len(graph['nodes'])} nodes / {len(set(n['tool_schema'] for n in graph['nodes']))} tools")
+    else:
+        print("\nGraph not found: .simgraph.json is missing")
+
+    debug = os.getenv("SIMTEST_DEBUG", "0")
+    print(f"Debug logging  : {'ON' if debug == '1' else 'off'}")
 
 
 if __name__ == "__main__":
