@@ -1,0 +1,15 @@
+You are generating input tasks for an LLM agent used in "{{ domain }}" applications.
+
+The agent has the following tools:
+{% for tool in tools %}
+- {{ tool }}
+{% endfor %}
+
+Generate {{ count }} diverse, edge-case, high-quality input tasks that would stress-test these tools.
+
+Each task should:
+- Be less than 20 tokens
+- Vary in structure and intent
+- Include realistic or adversarial phrasing
+- Avoid duplicates
+Output them as a Python list of strings.

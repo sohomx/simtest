@@ -14,4 +14,19 @@ class Seed:
 def load_seed_file(path: str) -> list[Seed]:
     with open(path) as f:
         raw = yaml.safe_load(f)
-    return [Seed(**entry) for entry in raw]
+
+    def to_seed(entry):
+        if "input" in entry:  # already a full seed
+            return Seed(**entry)
+        if "raw" in entry:  # domain-style minimal seed
+            return Seed(
+                node_id="start",
+                input={"raw": entry["raw"]},
+                expect=None,
+                vars={},
+                description="domain-generated"
+            )
+        raise ValueError(f"Unrecognized seed entry: {entry}")
+
+    return [to_seed(entry) for entry in raw]
+

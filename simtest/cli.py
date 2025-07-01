@@ -3,9 +3,10 @@ from typing import Optional
 import typer
 import shutil
 from pathlib import Path
-
+import dataclasses
 import yaml
 from simtest.core.loader import load_graph
+from simtest.seeds.domain import DomainSeedGenerator
 from simtest.utils.table import print_graph_table
 from simtest.core.graph_builder import GraphBuilder
 from simtest.seeds.loader import load_seed_file
@@ -262,6 +263,51 @@ def diagnose():
 
     debug = os.getenv("SIMTEST_DEBUG", "0")
     print(f"Debug logging  : {'ON' if debug == '1' else 'off'}")
+
+@app.command()
+def seed_from(
+    domain: str = typer.Argument(..., help="Domain name (e.g. 'finance-qa')"),
+    n: int = typer.Argument(100, help="Number of seeds to generate"),
+):
+    """
+    Generate domain-specific seeds via GPT.
+    """
+    with open(".simgraph.json") as f:
+        graph = json.load(f)
+    tool_names = [node["tool_schema"] for node in graph["nodes"]]
+    gen = DomainSeedGenerator(domain=domain, tools=tool_names, count=n)
+    seeds = gen.generate()
+    print(f"✅ Generated {len(seeds)} seeds")
+    for s in seeds:
+        print("-", s)
+
+
+@app.command("seed-from")
+def seed_from(
+    domain: str = typer.Argument(..., help="Target domain (e.g. finance-qa)"),
+    n: int = typer.Argument(..., help="Number of seeds to generate"),
+    output: Optional[str] = typer.Option(None, help="Optional path to save as YAML")
+):
+    """
+    Generate domain-specific seeds using LLM.
+    """
+    import yaml
+    import dataclasses
+    from simtest.seeds.domain import DomainSeedGenerator
+
+    with open(".simgraph.json") as f:
+        graph = json.load(f)
+
+    tool_names = [node["tool_schema"] for node in graph["nodes"]]
+    gen = DomainSeedGenerator(domain=domain, tools=tool_names, count=n)
+    seeds = gen.generate()
+
+    print(f"✅ Final seed count: {len(seeds)}")
+
+    if output:
+        with open(output, "w") as f:
+            yaml.safe_dump([dataclasses.asdict(s) for s in seeds], f)
+        print(f"📁 Wrote seed file to {output}")
 
 
 if __name__ == "__main__":
