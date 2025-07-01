@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simtest"
-version = "0.1.0"
+version = "0.1.1"
 description = "CLI-first fuzz & coverage gate for LLM agent graphs"
 authors = ["Sohom <your@email.com>"]
 license = "MIT"

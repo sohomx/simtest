@@ -1,0 +1,74 @@
+[
+  {
+    "node_id": "analyze",
+    "tool_name": "AnalyzeTool",
+    "input_tokens": 50,
+    "output_tokens": 24,
+    "latency_ms": 13,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "end",
+    "tool_name": "EndTool",
+    "input_tokens": 27,
+    "output_tokens": 41,
+    "latency_ms": 23,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "start",
+    "tool_name": "StartTool",
+    "input_tokens": 16,
+    "output_tokens": 96,
+    "latency_ms": 41,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "analyze",
+    "tool_name": "AnalyzeTool",
+    "input_tokens": 44,
+    "output_tokens": 21,
+    "latency_ms": 38,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "end",
+    "tool_name": "EndTool",
+    "input_tokens": 12,
+    "output_tokens": 13,
+    "latency_ms": 17,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "start",
+    "tool_name": "StartTool",
+    "input_tokens": 24,
+    "output_tokens": 74,
+    "latency_ms": 35,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "analyze",
+    "tool_name": "AnalyzeTool",
+    "input_tokens": 45,
+    "output_tokens": 35,
+    "latency_ms": 41,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "end",
+    "tool_name": "EndTool",
+    "input_tokens": 44,
+    "output_tokens": 63,
+    "latency_ms": 23,
+    "verdict": "PASS"
+  },
+  {
+    "node_id": "start",
+    "tool_name": "StartTool",
+    "input_tokens": 47,
+    "output_tokens": 45,
+    "latency_ms": 44,
+    "verdict": "PASS"
+  }
+]

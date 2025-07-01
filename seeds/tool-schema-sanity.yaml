@@ -1,20 +1,212 @@
-- node_id: start
-  input:
-    user_message: "Begin the workflow now."
+- description: Simple user start command
   expect: null
-  vars: {}
-  description: "Simple user start command"
-
-- node_id: analyze
   input:
-    text: "The user wants to cancel the meeting."
-  expect: null
+    user_message: Begin the workflow now.
+  node_id: start
   vars: {}
-  description: "Standard schema-valid text input"
-
-- node_id: end
+- description: Standard schema-valid text input
+  expect: null
+  input:
+    text: The user wants to cancel the meeting.
+  node_id: analyze
+  vars: {}
+- description: Well-formed boolean input
+  expect: null
   input:
     confirmation: true
-  expect: null
+  node_id: end
   vars: {}
-  description: "Well-formed boolean input"
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback
+- input:
+    raw: fallback

@@ -119,7 +119,8 @@ def fuzz(
     quick: bool = typer.Option(True, help="Limit to 100 seeds"),
     max_cost: float = typer.Option(3.0, help="Budget cap in USD"),
     semantic_check: bool = typer.Option(False, help="Use LLM to explain failed outputs"),
-    report: Optional[str] = typer.Option(None, help="Write markdown report to this path")
+    report: Optional[str] = typer.Option(None, help="Write markdown report to this path"),
+    trace_log: Optional[str] = typer.Option(None, help="Write full traces to JSON file")
 ):
     """
     Run fuzzing session: load graph + seeds → run sandboxed tool calls.
@@ -221,14 +222,20 @@ def fuzz(
         writer.write(report)
         print(f"📝 Wrote markdown report to {report}")
 
-        # 🚨 CI Exit Checks (Day 12)
-        if quick and (verdict_counts["FAIL_SCHEMA"] > 0 or verdict_counts["FAIL_EXCEPTION"] > 0):
-            print("❌ Fuzz found new failures — CI check will fail.")
-            raise typer.Exit(1)
+    if trace_log:
+        with open(trace_log, "w") as f:
+            json.dump(all_traces, f, indent=2)
+        print(f"📝 Wrote trace log to {trace_log}")
 
-        if quick and total_cost > max_cost * 1.10:
-            print("❌ Fuzz cost increased >10% — CI check will fail.")
-            raise typer.Exit(1)
+    # 🚨 CI Exit Checks (Day 12)
+    if quick and (verdict_counts["FAIL_SCHEMA"] > 0 or verdict_counts["FAIL_EXCEPTION"] > 0):
+        print("❌ Fuzz found new failures — CI check will fail.")
+        raise typer.Exit(1)
+
+    if quick and total_cost > max_cost * 1.10:
+        print("❌ Fuzz cost increased >10% — CI check will fail.")
+        raise typer.Exit(1)
+
 
 
 @app.command()
