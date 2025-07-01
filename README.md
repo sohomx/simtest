@@ -28,22 +28,38 @@ pip install .
 
 ---
 
-## Quickstart
-
-SimTest uses a 3-step workflow:
+## Quick Start – 3 commands
 
 ```bash
-simtest init --path examples/basic_agent/main.py
-simtest seed --suite tool-schema-sanity
-simtest fuzz --quick --report simtest-report.md
+pip install -e .                            # 1️⃣ editable install for fast iteration
+simtest init examples/basic_agent/main.py   # 2️⃣ parse agent & write .simgraph.json
+simtest fuzz --quick                        # 3️⃣ 100 seeds, <60 s, < $1
 ```
+---
 
-This will:
+## What happens under the hood
 
-* Parse your agent and extract the tool DAG
-* Load a curated pack of test seeds
-* Run 100 fuzz tests with sandboxed cost tracking
-* Emit a markdown report of pass/fail verdicts, top latency/cost nodes, and schema coverage
+1. **Editable install**
+
+   Links your working directory into the Python environment. Any code edits are picked up instantly without reinstalling the package.
+
+2. **`simtest init`**
+
+   Parses your agent file (`main.py`, LangGraph/CrewAI/Python DAG) and builds a `.simgraph.json` file:
+
+   * Lists all nodes and their tool schemas
+   * Ensures graph structure is deterministic and reproducible
+   * Used as the input for later test runs
+
+3. **`simtest fuzz --quick`**
+
+   Runs a default 100 curated seed cases in a sandboxed executor:
+
+   * Tracks cost, latency, and verdict per node
+   * Validates schema correctness and catches exceptions
+   * Warns if coverage <80% (nodes or tool schemas)
+   * Enforces a budget cap (`--max-cost $3` by default)
+   * Can optionally emit a markdown report (`--report report.md`)
 
 ---
 
