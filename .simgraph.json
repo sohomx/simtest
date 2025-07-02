@@ -1,23 +1,18 @@
 {
   "meta": {
     "format_version": 1,
-    "node_count": 3
+    "node_count": 2
   },
   "nodes": [
     {
-      "id": "analyze",
-      "tool_schema": "AnalyzeTool",
-      "type": "task"
-    },
-    {
-      "id": "end",
-      "tool_schema": "EndTool",
-      "type": "task"
-    },
-    {
       "id": "start",
-      "tool_schema": "StartTool",
-      "type": "task"
+      "type": "task",
+      "tool_schema": "StartTool"
+    },
+    {
+      "id": "analyze",
+      "type": "task",
+      "tool_schema": "AnalyzeTool"
     }
   ]
 }

@@ -272,6 +272,23 @@ def seed_from(
             yaml.safe_dump([dataclasses.asdict(s) for s in seeds], f)
         print(f"📁 Wrote seed file to {output}")
 
+@app.command("import")
+def import_cmd(
+    source: str = typer.Argument(..., help="Import source type (e.g., langsmith)"),
+    path: str = typer.Argument(..., help="Path to input file"),
+):
+    """
+    Import external traces into SimTest format.
+    """
+    if source == "langsmith":
+        from simtest.importer.langsmith import convert_langsmith_trace
+        convert_langsmith_trace(path)
+        print(f"✅ Imported LangSmith trace: wrote .simgraph.json and seeds/trace-import.yaml")
+    else:
+        print(f"❌ Unsupported import source: {source}")
+        raise typer.Exit(1)
+
+
 
 if __name__ == "__main__":
     app()

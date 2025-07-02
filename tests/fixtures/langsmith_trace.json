@@ -1,0 +1,16 @@
+{
+  "steps": [
+    {
+      "name": "start",
+      "tool": "StartTool",
+      "inputs": { "input": "What's the weather like in Paris?" },
+      "outputs": { "output": "It's sunny and 25°C." }
+    },
+    {
+      "name": "analyze",
+      "tool": "AnalyzeTool",
+      "inputs": { "input": "Summarize the Paris weather" },
+      "outputs": { "output": "Warm and clear." }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+- description: Imported from LangSmith step start
+  expect: "It's sunny and 25\xB0C."
+  input:
+    raw: What's the weather like in Paris?
+  node_id: start
+  vars: {}
+- description: Imported from LangSmith step analyze
+  expect: Warm and clear.
+  input:
+    raw: Summarize the Paris weather
+  node_id: analyze
+  vars: {}
