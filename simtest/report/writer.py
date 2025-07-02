@@ -23,6 +23,12 @@ class ReportWriter:
         self.noise_pct = noise_pct
 
     def render(self) -> str:
+        all_verdicts = ["PASS", "FAIL_SCHEMA", "FAIL_EXCEPTION", "FAIL_POLICY", "FAIL_COST_SPIKE"]
+        verdict_summary = "\n".join(
+            f"- {v}: {self.verdicts.get(v, 0)}"
+            for v in all_verdicts
+        )
+
         fail_rows = [
             f"| {t.get('seed_id', '?')} | {t['verdict']} | ${self._c(t)} | {t['latency_ms']} | {t.get('explanation', '')} |"
             for t in self.traces if t["verdict"] != "PASS"
@@ -40,12 +46,16 @@ class ReportWriter:
         return f"""# SimTest Report: `{self.suite_name}`
 
 **Stats**
-- ✅ Passed: {self.verdicts['PASS']} / {sum(self.verdicts.values())}
+- ✅ Passed: {self.verdicts.get("PASS", 0)} / {sum(self.verdicts.values())}
 - 📊 Coverage: {self.coverage['node_visit_pct']}% nodes / {self.coverage['tool_schema_visit_pct']}% schemas
 - 💰 Cost: ${self.total_cost:.4f}
 - 💸 Cost Multiplier: {self.cost_multiplier}
 - 🎯 Noise Rate: {self.noise_pct:.2%}
 - ⏱️ Runtime: {round(self.runtime_s, 2)} seconds
+
+## 🔍 Verdict Breakdown
+
+{verdict_summary or "_No verdicts recorded_"}
 
 ## ❌ Failures
 

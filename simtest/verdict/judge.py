@@ -29,7 +29,6 @@ Respond with JSON in this format:
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             temperature=0,
-            response_format="json",
             messages=[
                 {"role": "user", "content": prompt.strip()}
             ]

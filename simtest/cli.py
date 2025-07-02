@@ -75,7 +75,9 @@ def fuzz(
     max_cost: float = typer.Option(3.0, help="Budget cap in USD"),
     semantic_check: bool = typer.Option(False, help="Use LLM to explain failed outputs"),
     report: Optional[str] = typer.Option(None, help="Write markdown report to this path"),
-    trace_log: Optional[str] = typer.Option(None, help="Write full traces to JSON file")
+    trace_log: Optional[str] = typer.Option(None, help="Write full traces to JSON file"),
+    max_per_node: float = typer.Option(0.01, help="Cost spike threshold (USD)"),
+    soft_policy: bool = typer.Option(False, help="Warn on policy violations instead of failing"),
 ):
     """
     Run fuzzing session: load graph + seeds → run sandboxed tool calls.
@@ -100,12 +102,19 @@ def fuzz(
     tracker = CostTracker(max_dollars=max_cost / cost_multiplier)
     judge = LLMJudge() if semantic_check else None
     total_runs = 0
-    verdict_counts = {"PASS": 0, "FAIL_SCHEMA": 0, "FAIL_EXCEPTION": 0}
+    verdict_counts = {
+        "PASS": 0,
+        "FAIL_SCHEMA": 0,
+        "FAIL_EXCEPTION": 0,
+        "FAIL_POLICY": 0,
+        "FAIL_COST_SPIKE": 0
+    }
     all_traces: list[dict] = []
     first_fails: list[dict] = []
 
     with SandboxExecutor(graph) as run:
         debug = os.getenv("SIMTEST_DEBUG", "0") == "1"
+        console = Console()
 
         for seed in seeds:
             trace = run(seed.input)
@@ -114,17 +123,29 @@ def fuzz(
 
             for step in trace:
                 v = step["verdict"]
-                verdict_counts[v] += 1
 
-                if v != "PASS" and semantic_check and judge:
+                # semantic check → FAIL_POLICY
+                if semantic_check and judge:
                     task_text = seed.input.get("raw", "no input")
                     judgement = judge.evaluate(
                         node_id=step["node_id"],
                         tool_name=step["tool_name"],
                         task=task_text,
-                        output={"fake": True}  # placeholder
+                        output={"fake": True}
                     )
                     step["explanation"] = judgement.explanation
+                    if "policy violation" in judgement.explanation.lower():
+                        v = "FAIL_POLICY"
+                        if soft_policy:
+                            console.print("[yellow]⚠️ Policy violation (soft fail)[/]")
+
+                # cost spike check → FAIL_COST_SPIKE
+                step_cost = (step["input_tokens"] + step["output_tokens"]) / 1000 * 0.002
+                if step_cost > max_per_node:
+                    v = "FAIL_COST_SPIKE"
+
+                step["verdict"] = v
+                verdict_counts[v] = verdict_counts.get(v, 0) + 1
 
                 if v != "PASS" and len(first_fails) < 5:
                     first_fails.append(step)
@@ -147,7 +168,7 @@ def fuzz(
         print("⚠️  Warning: node coverage < 80% in quick-mode")
 
     total = sum(verdict_counts.values())
-    passed = verdict_counts["PASS"]
+    passed = verdict_counts.get("PASS", 0)
     noise_pct = 1.0 - (passed / total if total else 1.0)
     console.print(f"[bold green]✅ PASS {passed} / {total}[/]")
 
@@ -192,7 +213,7 @@ def fuzz(
         print(f"📝 Wrote trace log to {trace_log}")
 
     # 🚨 CI Exit Checks
-    if quick and (verdict_counts["FAIL_SCHEMA"] > 0 or verdict_counts["FAIL_EXCEPTION"] > 0):
+    if quick and (verdict_counts.get("FAIL_SCHEMA", 0) > 0 or verdict_counts.get("FAIL_EXCEPTION", 0) > 0):
         print("❌ Fuzz found new failures — CI check will fail.")
         raise typer.Exit(1)
 
@@ -292,5 +313,3 @@ def import_cmd(
 
 if __name__ == "__main__":
     app()
-
-
