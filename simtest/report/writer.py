@@ -1,6 +1,5 @@
 from typing import List, Optional
 from pathlib import Path
-import time
 
 class ReportWriter:
     def __init__(
@@ -10,12 +9,18 @@ class ReportWriter:
         coverage: dict,
         total_cost: float,
         runtime_s: float,
+        suite_name: str = "",
+        cost_multiplier: float = 1.0,
+        noise_pct: float = 0.0,
     ):
         self.traces = traces
         self.verdicts = verdicts
         self.coverage = coverage
         self.total_cost = total_cost
         self.runtime_s = runtime_s
+        self.suite_name = suite_name
+        self.cost_multiplier = cost_multiplier
+        self.noise_pct = noise_pct
 
     def render(self) -> str:
         fail_rows = [
@@ -32,12 +37,14 @@ class ReportWriter:
             for t in top_cost_nodes
         ]
 
-        return f"""# SimTest Report
+        return f"""# SimTest Report: `{self.suite_name}`
 
 **Stats**
 - ✅ Passed: {self.verdicts['PASS']} / {sum(self.verdicts.values())}
 - 📊 Coverage: {self.coverage['node_visit_pct']}% nodes / {self.coverage['tool_schema_visit_pct']}% schemas
 - 💰 Cost: ${self.total_cost:.4f}
+- 💸 Cost Multiplier: {self.cost_multiplier}
+- 🎯 Noise Rate: {self.noise_pct:.2%}
 - ⏱️ Runtime: {round(self.runtime_s, 2)} seconds
 
 ## ❌ Failures

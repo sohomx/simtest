@@ -1,0 +1,41 @@
+meta:
+  cost_multiplier: 2.0
+  noise_threshold: 0.25
+
+seeds:
+  - node_id: start
+    input:
+      raw: "After reading 6,000 tokens of medical history, extract the one symptom mentioned at the end"
+    expect: null
+    vars: {}
+    description: Symptom retrieval in last-token position
+
+  - node_id: start
+    input:
+      raw: "Summarize the final section only: 50-page annual report embedded before this"
+    expect: null
+    vars: {}
+    description: Summarization truncation stress test
+
+  - node_id: start
+    input:
+      raw: "From the 6k token research dump, extract just the lab test result mentioned in the last paragraph"
+    expect: null
+    vars: {}
+    description: Deep position-aware extraction
+
+  - node_id: start
+    input:
+      raw: "Trigger a tool call only if the last token of this huge document mentions 'emergency'"
+    expect: null
+    vars: {}
+    description: Long-context conditional triggering
+
+  - node_id: start
+    input:
+      raw: "From this long political debate transcript, count how many times 'climate' appears — only in the last speaker’s turn"
+    expect: null
+    vars: {}
+    description: Scoped span counting in trailing position
+
+

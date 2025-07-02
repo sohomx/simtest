@@ -68,52 +68,6 @@ def seed(suite: str = typer.Option(..., help="Seed suite to copy (tool-schema-sa
 
 
 @app.command()
-def qa():
-    """
-    Run QA over all curated seeds and print noise stats.
-    """
-    seed_dir = Path("seeds")
-    total_pass, total_fail = 0, 0
-
-    for path in seed_dir.glob("*.yaml"):
-        print(f"\n🔍 QA: {path.name}")
-        passed, failed = qa_suite(path)
-        total_pass += passed
-        total_fail += failed
-
-    total = total_pass + total_fail
-    noise = (total_fail / total) * 100 if total > 0 else 0
-    print(f"\n✅ Seed QA complete: {total_pass} passed / {total} total")
-    print(f"🧪 Noise ratio: {noise:.1f}%")
-
-    if noise > 20:
-        print("❌ Noise too high! Trim bad seeds before public use.")
-        raise typer.Exit(1)
-    
-@app.command()
-def generate(
-    suite: str = typer.Option(..., help="Tool name or seed suite"),
-    n: int = typer.Option(100, help="How many seeds to generate"),
-    domain: str = typer.Option("", help="Optional domain (e.g., finance-qa)")
-):
-    """
-    Generate N LLM-based seed inputs for given tool or suite.
-    """
-    print(f"⚙️  Generating {n} seeds for: {suite}")
-    gen = SeedGenerator(suite=suite, n=n, domain=domain)
-    seeds, cost = gen.generate()
-
-    out_path = Path(f"seeds/{suite}-gen.yaml")
-    out_path.parent.mkdir(exist_ok=True)
-    with open(out_path, "w") as f:
-        yaml.dump([s.__dict__ for s in seeds], f)
-
-    print(f"\n✅ Wrote {len(seeds)} seeds to {out_path}")
-    print(f"💰 Total cost: ${cost.total_cost:.6f} using {cost.total_tokens} tokens")
-    print(f"   ├── Prompt: {cost.prompt_tokens}  → ${cost.prompt_tokens / 1000 * 0.0005:.6f}")
-    print(f"   └── Output: {cost.output_tokens}  → ${cost.output_tokens / 1000 * 0.0015:.6f}")
-
-@app.command()
 def fuzz(
     graph_path: str = typer.Option(".simgraph.json", help="Path to compiled simgraph"),
     suite: str = typer.Option("tool-schema-sanity", help="Seed YAML suite"),
@@ -126,9 +80,7 @@ def fuzz(
     """
     Run fuzzing session: load graph + seeds → run sandboxed tool calls.
     """
-    import time
-    import os
-    import json
+    import time, os, json
     from simtest.coverage.calc import CoverageCalculator
     from simtest.report.writer import ReportWriter
 
@@ -138,11 +90,14 @@ def fuzz(
     with open(graph_path) as f:
         graph = json.load(f)
 
-    seeds = load_seed_file(f"seeds/{suite}.yaml")
+    seeds, meta = load_seed_file(f"seeds/{suite}.yaml")
+    cost_multiplier = float(meta.get("cost_multiplier", 1.0))
+    noise_threshold = float(meta.get("noise_threshold", 0.1))
+
     if quick:
         seeds = seeds[:100]
 
-    tracker = CostTracker(max_dollars=max_cost)
+    tracker = CostTracker(max_dollars=max_cost / cost_multiplier)
     judge = LLMJudge() if semantic_check else None
     total_runs = 0
     verdict_counts = {"PASS": 0, "FAIL_SCHEMA": 0, "FAIL_EXCEPTION": 0}
@@ -193,7 +148,12 @@ def fuzz(
 
     total = sum(verdict_counts.values())
     passed = verdict_counts["PASS"]
+    noise_pct = 1.0 - (passed / total if total else 1.0)
     console.print(f"[bold green]✅ PASS {passed} / {total}[/]")
+
+    if quick and noise_pct > noise_threshold:
+        print(f"❌ Noise too high: {noise_pct:.2%} > {noise_threshold:.0%} — CI check will fail.")
+        raise typer.Exit(1)
 
     if first_fails:
         table = Table(title="First 5 Failures")
@@ -219,6 +179,9 @@ def fuzz(
             coverage=coverage,
             total_cost=total_cost,
             runtime_s=round(time.time() - start, 2),
+            suite_name=suite,
+            cost_multiplier=cost_multiplier,
+            noise_pct=noise_pct,
         )
         writer.write(report)
         print(f"📝 Wrote markdown report to {report}")
@@ -228,7 +191,7 @@ def fuzz(
             json.dump(all_traces, f, indent=2)
         print(f"📝 Wrote trace log to {trace_log}")
 
-    # 🚨 CI Exit Checks (Day 12)
+    # 🚨 CI Exit Checks
     if quick and (verdict_counts["FAIL_SCHEMA"] > 0 or verdict_counts["FAIL_EXCEPTION"] > 0):
         print("❌ Fuzz found new failures — CI check will fail.")
         raise typer.Exit(1)
