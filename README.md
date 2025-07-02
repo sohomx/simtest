@@ -37,6 +37,20 @@ simtest fuzz --quick                        # 3️⃣ 100 seeds, <60 s, < $1
 ```
 ---
 
+## ✅ Why SimTest?
+
+SimTest is built for reliability-focused teams shipping multi-step LLM agents into production.
+
+It gives you:
+
+- Deterministic test graph from your agent code
+- Curated and generated seed suites with metadata
+- Cost/latency-aware fuzzing with CI gates
+- Markdown and Slack-friendly reports for visibility
+- Cloud diffing and policy spike detection (invite-only)
+
+---
+
 ## What happens under the hood
 
 1. **Editable install**
@@ -105,17 +119,35 @@ You can also generate LLM-based seeds:
 simtest generate --suite analyze --n 100
 ```
 
+### `simtest import`
+
+Converts LangSmith run JSON into `.simgraph.json` + test seeds.
+
+```bash
+simtest import langsmith your_run.json
+```
+
+Generates:
+- `.simgraph.json` – linear trace DAG
+- `seeds/trace-import.yaml` – one seed per LangSmith step
+
+---
+
 ### `simtest fuzz`
 
-Runs all seeds in a sandbox and enforces cost limits:
+Runs curated test seeds in sandbox and applies schema, policy, cost, and exception checks:
 
 ```bash
 simtest fuzz --suite tool-schema-sanity --quick --max-cost 3.0 --report simtest-report.md
 ```
 
-Optional flag:
+Optional flags:
 
-* `--semantic-check` (use LLM to explain failed outputs)
+- `--semantic-check` (use LLM to classify failed outputs + policy violations)
+- `--soft-policy` (treat FAIL_POLICY as warning, not CI fail)
+- `--max-per-node` (trigger FAIL_COST_SPIKE if exceeded)
+- `--report` (write markdown summary)
+- `--trace-log` (write full step trace as JSON)
 
 ---
 
@@ -138,6 +170,13 @@ Each failure is classified and logged deterministically. Optional semantic verdi
 💰 Total cost: $0.74
 📊 Coverage: 92.0% nodes / 85.0% schemas
 ✅ PASS 96 / 100
+
+🔍 Verdict Breakdown:
+- PASS: 96
+- FAIL_SCHEMA: 2
+- FAIL_EXCEPTION: 1
+- FAIL_POLICY: 1
+- FAIL_COST_SPIKE: 0
 ```
 
 A markdown report (if `--report path.md` is provided) includes:
@@ -145,6 +184,20 @@ A markdown report (if `--report path.md` is provided) includes:
 * Table of failed seeds (seed id, verdict, latency, explanation)
 * Top 5 costliest nodes
 * Total cost, runtime, and coverage stats
+
+---
+
+## 🧪 Seed Packs
+
+SimTest comes with curated seed suites for key failure modes:
+
+| Suite             | Purpose                          | # Seeds | Cost Mult | Noise Cap |
+|------------------|----------------------------------|---------|-----------|------------|
+| tool-schema-sanity | Detect schema mismatches         | 100     | 1.0       | 10%        |
+| policy-violation   | Test moderation / unsafe prompts | 5       | 1.0       | 20%        |
+| long-context       | Trigger truncation & overflow    | 5       | 1.0       | 20%        |
+
+Each `.yaml` includes metadata like `cost_multiplier` and `noise_threshold`.
 
 ---
 
@@ -169,6 +222,29 @@ jobs:
       - run: pip install .
       - run: simtest fuzz --quick --report simtest-report.md
 ```
+
+To detect regressions:
+
+- Fails if noise > threshold (e.g., >10%)
+- Fails if total cost > 10% increase
+- Fails on schema, exception, or cost spike errors
+- Fails on policy if not using `--soft-policy`
+
+---
+
+## ☁️ Cloud Upload (Alpha)
+
+SimTest can optionally upload run metadata to a private dashboard:
+
+```bash
+simtest fuzz --upload
+```
+
+- Requires `SIMTEST_CLOUD_TOKEN`
+- Uploads run JSON to `https://alpha.simtest.dev/upload`
+- Diff API + Slack alert webhook supported
+
+Invite-only for now.
 
 ---
 
