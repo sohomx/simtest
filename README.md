@@ -1,6 +1,10 @@
 # SimTest
 
 ![SimTest CI](https://github.com/sohomx/simtest/actions/workflows/simtest.yml/badge.svg)
+![LLM Agent Fuzzer](https://img.shields.io/badge/type-fuzzer-blue)
+![Reliability Gate](https://img.shields.io/badge/ci-pass%2Ffail-green)
+![Sandboxed](https://img.shields.io/badge/sandboxed-yes-orange)
+![Cloud Optional](https://img.shields.io/badge/cloud-alpha-lightgrey)
 
 **Fuzz testing and coverage reporting for LLM agents.**
 
@@ -38,6 +42,12 @@ simtest fuzz --quick                        # 3️⃣ 100 seeds, <60 s, < $1
 ---
 
 ## ✅ Why SimTest?
+
+## 👤 Who is SimTest for?
+
+- AI infra engineers shipping DAG-style agents to production
+- Fintech, med-tech, and policy-sensitive teams with tight reliability constraints
+- Builders who want CI-grade enforcement of agent cost, schema, and coverage
 
 SimTest is built for reliability-focused teams shipping multi-step LLM agents into production.
 
@@ -153,6 +163,12 @@ Optional flags:
 
 ## What SimTest Checks
 
+## ❗ What SimTest Doesn't Do (Yet)
+
+- Doesn't trace external API internals (only tool inputs/outputs)
+- Doesn't test multi-agent concurrency or state races
+- Doesn't verify answer correctness or truth (just schema, cost, and exceptions)
+
 * Tool schema mismatches
 * Runtime exceptions
 * Over-budget completions
@@ -165,25 +181,25 @@ Each failure is classified and logged deterministically. Optional semantic verdi
 
 ## Output Example
 
-```bash
-✅ Fuzz complete: 100 seeds run
-💰 Total cost: $0.74
-📊 Coverage: 92.0% nodes / 85.0% schemas
-✅ PASS 96 / 100
-
-🔍 Verdict Breakdown:
-- PASS: 96
-- FAIL_SCHEMA: 2
-- FAIL_EXCEPTION: 1
-- FAIL_POLICY: 1
-- FAIL_COST_SPIKE: 0
-```
+![SimTest CLI Output](assets/output-sample.svg)
 
 A markdown report (if `--report path.md` is provided) includes:
 
 * Table of failed seeds (seed id, verdict, latency, explanation)
 * Top 5 costliest nodes
 * Total cost, runtime, and coverage stats
+
+## 🧭 Feature Matrix
+
+| Feature                   | CLI Support                   | CI Gate | Docs |
+|---------------------------|-------------------------------|---------|------|
+| Tool schema validation    | ✅ `fuzz`                      | ✅      | ✅    |
+| Exception detection       | ✅ `fuzz`                      | ✅      | ✅    |
+| Cost spike detection      | ✅ `--max-per-node`            | ✅      | ✅    |
+| Policy violation detect   | ✅ `--semantic-check`          | ✅      | ✅    |
+| Markdown report           | ✅ `--report`                  | ✖️       | ✅    |
+| Slack alert webhook       | ✅ `simtest notify`            | ✖️       | ✅    |
+| Cloud run diffing         | ✅ `--upload`                  | ✖️       | ✅ (Alpha-only) |
 
 ---
 
