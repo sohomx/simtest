@@ -1,10 +1,20 @@
-# SimTest Report
+# SimTest Report: `tool-schema-sanity`
 
 **Stats**
-- ✅ Passed: 9 / 9
+- ✅ Passed: 10 / 10
 - 📊 Coverage: 100.0% nodes / 100.0% schemas
 - 💰 Cost: $0.0008
-- ⏱️ Runtime: 0.29 seconds
+- 💸 Cost Multiplier: 1.0
+- 🎯 Noise Rate: 0.00%
+- ⏱️ Runtime: 0.34 seconds
+
+## 🔍 Verdict Breakdown
+
+- PASS: 10
+- FAIL_SCHEMA: 0
+- FAIL_EXCEPTION: 0
+- FAIL_POLICY: 0
+- FAIL_COST_SPIKE: 0
 
 ## ❌ Failures
 
@@ -17,7 +27,7 @@ _No failures_
 | Node | Tool | Total Tokens |
 |------|------|---------------|
 | start | StartTool | 112 tokens |
-| end | EndTool | 107 tokens |
-| start | StartTool | 98 tokens |
+| analyze | AnalyzeTool | 107 tokens |
+| analyze | AnalyzeTool | 98 tokens |
 | start | StartTool | 92 tokens |
-| analyze | AnalyzeTool | 80 tokens |
+| start | StartTool | 80 tokens |

@@ -1,212 +1,39 @@
-- description: Simple user start command
-  expect: null
-  input:
-    user_message: Begin the workflow now.
-  node_id: start
-  vars: {}
-- description: Standard schema-valid text input
-  expect: null
-  input:
-    text: The user wants to cancel the meeting.
-  node_id: analyze
-  vars: {}
-- description: Well-formed boolean input
-  expect: null
-  input:
-    confirmation: true
-  node_id: end
-  vars: {}
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
-- input:
-    raw: fallback
+meta:
+  cost_multiplier: 1.0
+  noise_threshold: 0.1
+
+seeds:
+  - description: Simple user start command
+    expect: null
+    input:
+      user_message: Begin the workflow now.
+    node_id: start
+    vars: {}
+
+  - description: Standard schema-valid text input
+    expect: null
+    input:
+      text: The user wants to cancel the meeting.
+    node_id: analyze
+    vars: {}
+
+  - description: Well-formed boolean input
+    expect: null
+    input:
+      confirmation: true
+    node_id: end
+    vars: {}
+
+  - description: Fallback raw input #1
+    expect: null
+    input:
+      raw: fallback
+    node_id: start
+    vars: {}
+
+  - description: Fallback raw input #2
+    expect: null
+    input:
+      raw: fallback
+    node_id: analyze
+    vars: {}

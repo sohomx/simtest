@@ -161,27 +161,11 @@ Optional flags:
 
 ---
 
-## What SimTest Checks
-
-## ❗ What SimTest Doesn't Do (Yet)
-
-- Doesn't trace external API internals (only tool inputs/outputs)
-- Doesn't test multi-agent concurrency or state races
-- Doesn't verify answer correctness or truth (just schema, cost, and exceptions)
-
-* Tool schema mismatches
-* Runtime exceptions
-* Over-budget completions
-* High-latency steps
-* Coverage gaps (nodes and schemas)
-
-Each failure is classified and logged deterministically. Optional semantic verdicts use GPT-3.5 in zero-temperature mode for explanations.
-
----
 
 ## Output Example
 
-![SimTest CLI Output](assets/output-sample.svg)
+
+![SimTest Report Output](assets/report-output.svg)
 
 A markdown report (if `--report path.md` is provided) includes:
 
@@ -248,21 +232,6 @@ To detect regressions:
 
 ---
 
-## ☁️ Cloud Upload (Alpha)
-
-SimTest can optionally upload run metadata to a private dashboard:
-
-```bash
-simtest fuzz --upload
-```
-
-- Requires `SIMTEST_CLOUD_TOKEN`
-- Uploads run JSON to `https://alpha.simtest.dev/upload`
-- Diff API + Slack alert webhook supported
-
-Invite-only for now.
-
----
 
 ## License
 

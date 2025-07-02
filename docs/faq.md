@@ -1,3 +1,5 @@
+# SimTest FAQ
+
 **Why is cost always under \$1?**
 
 SimTest uses a strict budget cap (`--max-cost`) enforced by the `CostTracker` utility. By default, `--quick` mode runs 100 seeds and ensures total token usage stays within \~\$1 using GPT-3.5. If the cost exceeds the budget during a fuzz run, the test aborts gracefully with a `BudgetExceeded` error.
