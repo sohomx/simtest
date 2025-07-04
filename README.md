@@ -4,7 +4,8 @@
 ![LLM Agent Fuzzer](https://img.shields.io/badge/type-fuzzer-blue)
 ![Reliability Gate](https://img.shields.io/badge/ci-pass%2Ffail-green)
 ![Sandboxed](https://img.shields.io/badge/sandboxed-yes-orange)
-![Cloud Optional](https://img.shields.io/badge/cloud-alpha-lightgrey)
+![Workflows Import](https://img.shields.io/badge/import-workflows-blue)
+![AutoGen Import](https://img.shields.io/badge/import-autogen-blue)
 
 **Fuzz testing and coverage reporting for LLM agents.**
 
@@ -36,7 +37,9 @@ pip install .
 
 ```bash
 pip install -e .                            # 1️⃣ editable install for fast iteration
-simtest init examples/basic_agent/main.py   # 2️⃣ parse agent & write .simgraph.json
+simtest init --path examples/basic_agent/main.py   # 2️⃣ parse agent & write .simgraph.json
+# Or, import from trace:
+simtest init --trace path/to/trace.json
 simtest fuzz --quick                        # 3️⃣ 100 seeds, <60 s, < $1
 ```
 ---
@@ -57,7 +60,12 @@ It gives you:
 - Curated and generated seed suites with metadata
 - Cost/latency-aware fuzzing with CI gates
 - Markdown and Slack-friendly reports for visibility
-- Cloud diffing and policy spike detection (invite-only)
+
+### ✅ Supported Integrations:
+- LangGraph
+- CrewAI
+- Workflows traces (`workflow_version`)
+- AutoGen OTEL traces
 
 ---
 
@@ -89,7 +97,7 @@ It gives you:
 
 ### 📽 Terminal Demo
 
-Here’s a 30-second walkthrough of SimTest in action:
+This demo shows importing a trace, running fuzz, and generating a report:
 
 ![SimTest Demo](assets/demo.svg)
 
@@ -109,10 +117,16 @@ It parses the agent DAG, loads curated test seeds, runs sandboxed fuzz checks, a
 
 ### `simtest init`
 
-Parses your agent file and generates `.simgraph.json`:
+Parse agent file:
 
 ```bash
-simtest init --path path/to/your_agent.py --write-graph
+simtest init --path path/to/your_agent.py
+```
+
+Or, import from trace:
+
+```bash
+simtest init --trace path/to/trace.json
 ```
 
 ### `simtest seed`
@@ -183,7 +197,6 @@ A markdown report (if `--report path.md` is provided) includes:
 | Policy violation detect   | ✅ `--semantic-check`          | ✅      | ✅    |
 | Markdown report           | ✅ `--report`                  | ✖️       | ✅    |
 | Slack alert webhook       | ✅ `simtest notify`            | ✖️       | ✅    |
-| Cloud run diffing         | ✅ `--upload`                  | ✖️       | ✅ (Alpha-only) |
 
 ---
 

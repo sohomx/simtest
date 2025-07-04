@@ -1,0 +1,8 @@
+{
+  "workflow_version": "1.0",
+  "steps": [
+    {"step_id": "start", "tool": "InputTool"},
+    {"step_id": "process", "tool": "ProcessTool"},
+    {"step_id": "end", "tool": "OutputTool"}
+  ]
+}

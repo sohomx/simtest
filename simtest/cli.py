@@ -29,11 +29,18 @@ app = typer.Typer()
 @app.command()
 def init(
     path: str = typer.Option("examples/toy_agent.py", help="Path to agent file"),
-    write_graph: bool = typer.Option(False, help="Write .simgraph.json to disk")
+    write_graph: bool = typer.Option(False, help="Write .simgraph.json to disk"),
+    trace: Optional[str] = typer.Option(None, help="Path to agent trace JSON"),
 ):
     """
     Parse agent and print node table. Optionally write .simgraph.json.
     """
+    if trace:
+        from simtest.importer.trace import import_trace
+        import_trace(trace)
+        print("✅ Imported trace successfully; graph + seeds ready.")
+        return
+
     print("✅ [cli.py > init()] CLI running with path =", path)
     graph = load_graph(path)
     print_graph_table(graph)

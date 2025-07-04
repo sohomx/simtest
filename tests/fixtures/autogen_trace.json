@@ -1,0 +1,7 @@
+{
+  "resource": { "service.name": "AutoGen" },
+  "spans": [
+    {"span_id": "1", "attributes": {"tool_name": "FetchTool"}},
+    {"span_id": "2", "attributes": {"tool_name": "ReplyTool"}}
+  ]
+}

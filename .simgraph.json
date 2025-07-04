@@ -1,18 +1,32 @@
 {
-  "meta": {
-    "format_version": 1,
-    "node_count": 2
-  },
   "nodes": [
     {
-      "id": "start",
-      "type": "task",
-      "tool_schema": "StartTool"
+      "id": "node_0",
+      "tool_schema": "InputTool",
+      "type": "task"
     },
     {
-      "id": "analyze",
-      "type": "task",
-      "tool_schema": "AnalyzeTool"
+      "id": "node_1",
+      "tool_schema": "ProcessTool",
+      "type": "task"
+    },
+    {
+      "id": "node_2",
+      "tool_schema": "OutputTool",
+      "type": "task"
     }
-  ]
+  ],
+  "edges": [
+    {
+      "from": "node_0",
+      "to": "node_1"
+    },
+    {
+      "from": "node_1",
+      "to": "node_2"
+    }
+  ],
+  "meta": {
+    "source": "workflows"
+  }
 }

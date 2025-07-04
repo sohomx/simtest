@@ -1,0 +1,16 @@
+meta:
+  cost_multiplier: 1.0
+  noise_threshold: 0.1
+seeds:
+- node_id: node_0
+  input:
+    raw: no_input
+  expect: null
+  vars: {}
+  description: Imported from AutoGen span 0
+- node_id: node_1
+  input:
+    raw: no_input
+  expect: null
+  vars: {}
+  description: Imported from AutoGen span 1
