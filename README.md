@@ -58,6 +58,8 @@ setx OPENAI_API_KEY "your_api_key_here"    # Windows (restart terminal after)
 
 This enables LLM-based seed generation and semantic checks.
 
+You do NOT need an OpenAI key for basic schema or exception testing—core SimTest runs work without LLMs.
+
 ---
 
 ### Trace-based Agent Import
@@ -90,6 +92,8 @@ simtest fuzz --suite policy_violation_v2 --quick --report simtest-policy-report.
 
 OpenAI API key is required for LLM-based seed generation or semantic checking.
 
+Once you generate and filter a seed pack, you can re-use it for future runs without additional API calls.
+
 Sample CLI output:
 ```
 ✅ Rendered 300 prompts → raw_seeds.jsonl
@@ -111,13 +115,14 @@ Saved to seeds/policy_violation_v2.yaml
 - AI infra engineers shipping DAG-style agents to production
 - Fintech, med-tech, and policy-sensitive teams with tight reliability constraints
 - Builders needing CI-grade enforcement of agent cost, schema, and coverage
+- Easily extendable: contribute new agent frameworks or trace formats via PR.
 
 SimTest provides:
 
 - Deterministic test graph from agent code or trace imports
 - Curated and generated seed suites with metadata
 - Cost/latency-aware fuzzing with CI gates
-- Markdown and Slack-friendly reports for visibility
+- Markdown reports (easy to copy-paste into Slack/PRs) for visibility
 
 ### Supported Integrations:
 - LangGraph
