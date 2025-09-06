@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 import typer
+from typer.models import OptionInfo
 import shutil
 from pathlib import Path
 import dataclasses
@@ -35,9 +36,11 @@ def init(
     """
     Parse agent and print node table. Optionally write .simgraph.json.
     """
-    if trace:
+    # When called directly (not via Typer), `trace` can be an OptionInfo.
+    _trace_val = trace.default if isinstance(trace, OptionInfo) else trace
+    if isinstance(_trace_val, str) and _trace_val:
         from simtest.importer.trace import import_trace
-        import_trace(trace)
+        import_trace(_trace_val)
         print("✅ Imported trace successfully; graph + seeds ready.")
         return
 
@@ -99,7 +102,15 @@ def fuzz(
     with open(graph_path) as f:
         graph = json.load(f)
 
-    seeds, meta = load_seed_file(f"seeds/{suite}.yaml")
+    result = load_seed_file(f"seeds/{suite}.yaml")
+
+    # Back-compat: loader may return a list or (list, meta)
+    if isinstance(result, tuple):
+        seeds, meta = result
+    else:
+        seeds = result
+        meta = {}
+
     cost_multiplier = float(meta.get("cost_multiplier", 1.0))
     noise_threshold = float(meta.get("noise_threshold", 0.1))
 
