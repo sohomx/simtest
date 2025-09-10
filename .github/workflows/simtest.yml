@@ -11,20 +11,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Install dependencies
-      run: poetry install
+      - name: Install dependencies (Poetry)
+        run: |
+          poetry --version
+          poetry install --no-interaction --no-ansi
 
-    - name: Run SimTest CI check
-      run: bash scripts/simtest_ci_check.sh
+      - name: Fuzz (no quick gate)
+        run: poetry run simtest fuzz --no-quick --trace-log tmp/ci.jsonl
+
+      - name: Detect failure signatures
+        id: detect
+        run: |
+          if grep -q '"signature"' tmp/ci.jsonl; then
+            echo "has_signatures=true" >> $GITHUB_OUTPUT
+            echo "Found failure signatures in trace; will run audit."
+          else
+            echo "has_signatures=false" >> $GITHUB_OUTPUT
+            echo "No failure signatures; skipping audit."
+          fi
+
+      - name: Audit determinism (2/2)
+        if: steps.detect.outputs.has_signatures == 'true'
+        run: poetry run simtest audit --trace tmp/ci.jsonl --runs 2
+
+      - name: Upload trace artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simtest-trace
+          path: tmp/ci.jsonl
+          if-no-files-found: warn
