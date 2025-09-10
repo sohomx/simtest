@@ -33,6 +33,13 @@ jobs:
         run: poetry run simtest init --write-graph
 
       - name: Fuzz (no quick gate)
+        if: ${{ !(github.event_name == 'pull_request' && startsWith(github.head_ref, 'ci-test/stable-failure')) }}
+        run: poetry run simtest fuzz --no-quick --trace-log tmp/ci.jsonl
+
+      - name: Fuzz (forced failure for stable-failure branches)
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'ci-test/stable-failure') }}
+        env:
+          SIMTEST_FORCE_BAD_OUTPUT: "1"
         run: poetry run simtest fuzz --no-quick --trace-log tmp/ci.jsonl
 
       - name: Detect failure signatures
@@ -47,7 +54,13 @@ jobs:
           fi
 
       - name: Audit determinism (2/2)
-        if: steps.detect.outputs.has_signatures == 'true'
+        if: ${{ steps.detect.outputs.has_signatures == 'true' && !(github.event_name == 'pull_request' && startsWith(github.head_ref, 'ci-test/stable-failure')) }}
+        run: poetry run simtest audit --trace tmp/ci.jsonl --runs 2
+
+      - name: Audit determinism (2/2) [forced-failure]
+        if: ${{ steps.detect.outputs.has_signatures == 'true' && github.event_name == 'pull_request' && startsWith(github.head_ref, 'ci-test/stable-failure') }}
+        env:
+          SIMTEST_FORCE_BAD_OUTPUT: "1"
         run: poetry run simtest audit --trace tmp/ci.jsonl --runs 2
 
       - name: Upload trace artifact
