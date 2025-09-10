@@ -29,6 +29,9 @@ jobs:
           poetry --version
           poetry install --no-interaction --no-ansi
 
+      - name: Init agent graph
+        run: poetry run simtest init --write-graph
+
       - name: Fuzz (no quick gate)
         run: poetry run simtest fuzz --no-quick --trace-log tmp/ci.jsonl
 
