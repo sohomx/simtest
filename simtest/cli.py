@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 import typer
+from typer.models import OptionInfo
 import shutil
 from pathlib import Path
 import dataclasses
@@ -35,9 +36,11 @@ def init(
     """
     Parse agent and print node table. Optionally write .simgraph.json.
     """
-    if trace:
+    # When called directly (not via Typer), `trace` can be an OptionInfo.
+    _trace_val = trace.default if isinstance(trace, OptionInfo) else trace
+    if isinstance(_trace_val, str) and _trace_val:
         from simtest.importer.trace import import_trace
-        import_trace(trace)
+        import_trace(_trace_val)
         print("✅ Imported trace successfully; graph + seeds ready.")
         return
 
@@ -92,6 +95,10 @@ def fuzz(
     import time, os, json
     from simtest.coverage.calc import CoverageCalculator
     from simtest.report.writer import ReportWriter
+    from simtest.trace.recorder import TraceRecorder
+    import uuid
+    from datetime import datetime, timezone
+    from simtest.verdict.signature import make_signature, signature_from_step
 
     print(f"🧪 Running fuzz on: {suite} (budget=${max_cost})")
     start = time.time()
@@ -99,7 +106,15 @@ def fuzz(
     with open(graph_path) as f:
         graph = json.load(f)
 
-    seeds, meta = load_seed_file(f"seeds/{suite}.yaml")
+    result = load_seed_file(f"seeds/{suite}.yaml")
+
+    # Back-compat: loader may return a list or (list, meta)
+    if isinstance(result, tuple):
+        seeds, meta = result
+    else:
+        seeds = result
+        meta = {}
+
     cost_multiplier = float(meta.get("cost_multiplier", 1.0))
     noise_threshold = float(meta.get("noise_threshold", 0.1))
 
@@ -108,6 +123,27 @@ def fuzz(
 
     tracker = CostTracker(max_dollars=max_cost / cost_multiplier)
     judge = LLMJudge() if semantic_check else None
+
+    # Set up streaming JSONL trace recorder if requested
+    rec = None
+    if trace_log:
+        rec = TraceRecorder(trace_log)
+        try:
+            sim_ver = importlib.metadata.version("simtest")
+        except Exception:
+            sim_ver = "0.0.0"
+        run_id = uuid.uuid4().hex
+        header = {
+            "run_id": run_id,
+            "seed_id": suite,
+            "git_sha": os.getenv("GIT_SHA", ""),
+            "started_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00","Z"),
+            "simtest_version": sim_ver,
+            "env": {"python": platform.python_version()},
+        }
+        rec.write_header(header)
+        _step_idx = 0
+
     total_runs = 0
     verdict_counts = {
         "PASS": 0,
@@ -158,6 +194,59 @@ def fuzz(
                     first_fails.append(step)
 
                 all_traces.append(step)
+
+                if rec is not None:
+                    kind = "tool" if step.get("tool_name") else "python"
+                    model = step.get("tool_name", "python")
+                    input_tokens = step.get("input_tokens", 0) or 0
+                    output_tokens = step.get("output_tokens", 0) or 0
+                    computed_cost = (input_tokens + output_tokens) / 1000 * 0.002
+                    line = {
+                        "run_id": run_id,
+                        "step_idx": _step_idx,
+                        "node_id": step.get("node_id", ""),
+                        "kind": kind,
+                        "input_canon": step.get("input", {}),
+                        "output_canon": step.get("output", None),
+                        "model": model,
+                        "latency_ms": step.get("latency_ms", 0),
+                        "cost_usd": computed_cost,
+                        "stubbed": step.get("stubbed", {"time": True, "rand": True, "uuid": True, "net": False}),
+                    }
+                    if "schema_expected" in step:
+                        line["schema_expected"] = step["schema_expected"]
+                    if "schema_found" in step:
+                        line["schema_found"] = step["schema_found"]
+
+                    if v != "PASS":
+                        if v == "FAIL_POLICY":
+                            error_kind = "policy_violation"
+                        elif ("schema_expected" in step) or ("schema_found" in step):
+                            error_kind = "schema_mismatch"
+                        elif step.get("error_class") or step.get("error_message"):
+                            error_kind = "exception"
+                        else:
+                            error_kind = "unknown"
+
+                        line["error"] = {
+                            "kind": error_kind,
+                            "class": step.get("error_class", ""),
+                            "message": step.get("error_message") or step.get("explanation", ""),
+                            "stack": None,
+                        }
+
+                        # Compute deterministic failure signature
+                        line["signature"] = make_signature(
+                            node_id=line["node_id"],
+                            error_kind=error_kind,
+                            schema_expected=line.get("schema_expected"),
+                            schema_found=line.get("schema_found"),
+                            error_class=line["error"]["class"],
+                            message=line["error"]["message"],
+                        )
+
+                    rec.write_step(line)
+                    _step_idx += 1
 
             if debug:
                 print(f"\n--- Trace for seed #{total_runs} ---")
@@ -215,9 +304,8 @@ def fuzz(
         print(f"📝 Wrote markdown report to {report}")
 
     if trace_log:
-        with open(trace_log, "w") as f:
-            json.dump(all_traces, f, indent=2)
-        print(f"📝 Wrote trace log to {trace_log}")
+        # Streaming JSONL recorder already wrote per-step lines
+        print(f"📝 Streamed trace JSONL to {trace_log}")
 
     # 🚨 CI Exit Checks
     if quick and (verdict_counts.get("FAIL_SCHEMA", 0) > 0 or verdict_counts.get("FAIL_EXCEPTION", 0) > 0):

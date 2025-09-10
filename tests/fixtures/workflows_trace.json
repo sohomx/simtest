@@ -1,8 +1,27 @@
 {
   "workflow_version": "1.0",
+  "graph": {
+    "nodes": [
+      {"id": "start",   "tool_schema": "InputTool"},
+      {"id": "process", "tool_schema": "ProcessTool"},
+      {"id": "end",     "tool_schema": "OutputTool"}
+    ],
+    "edges": [
+      {"from": "start",   "to": "process"},
+      {"from": "process", "to": "end"}
+    ]
+  },
   "steps": [
-    {"step_id": "start", "tool": "InputTool"},
+    {"step_id": "start",   "tool": "InputTool"},
     {"step_id": "process", "tool": "ProcessTool"},
-    {"step_id": "end", "tool": "OutputTool"}
+    {"step_id": "end",     "tool": "OutputTool"}
+  ],
+  "seeds": [
+    {
+      "seed_id": "fixture#1",
+      "input": {"raw": "hello world"},
+      "expect": {"end": {"type": "object"}},
+      "description": "Minimal seed to drive the trace importer"
+    }
   ]
 }
